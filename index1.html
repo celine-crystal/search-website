@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>集成搜索引擎</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .icon-button {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .circle-button {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #2d2d2d;
+        }
+
+        .circle-button:hover {
+            background-color: #3d3d3d;
+        }
+
+        .tooltip {
+            display: none;
+            position: absolute;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #2d2d2d;
+            color: #ffffff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .circle-button:hover .tooltip {
+            display: block;
+        }
+
+        .search-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        .search-bar {
+            width: 100%;
+            max-width: 600px;
+            background-color: #2d2d2d;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border: 2px solid transparent;
+        }
+
+        .search-bar:hover,
+        .search-bar:focus-within {
+            border-color: #3d3d3d;
+        }
+
+        .search-input {
+            flex-grow: 1;
+            background: none;
+            border: none;
+            color: #ffffff;
+            padding: 8px;
+            outline: none;
+        }
+
+        .search-select {
+            background: none;
+            border: none;
+            color: #ffffff;
+            padding: 8px;
+            outline: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center min-h-screen bg-gray-900 text-white">
+    <h1 class="text-6xl mb-8 mt-8">Suogou</h1>
+    <div class="search-container mb-8">
+        <div class="search-bar">
+            <input class="search-input" type="text" id="query" placeholder="输入搜索关键词" required onkeydown="if(event.key === 'Enter') search();" onfocus="showHistory();" onblur="hideHistoryWithDelay();">
+            <select id="engine" class="search-select">
+                <option value="google">Google</option>
+                <option value="bing">必应</option>
+                <option value="baidu">百度</option>
+            </select>
+        </div>
+    </div>
+    <ul id="history" class="hidden absolute w-full bg-gray-800 text-white p-2 rounded mt-1 max-h-48 overflow-auto z-10">
+        <!-- 历史记录将被动态添加到这里 -->
+    </ul>
+
+    <!-- 已添加的网页列表和添加按钮 -->
+    <div id="addedPages" class="w-full max-w-lg mt-8 grid grid-cols-6 gap-6 text-center">
+        <!-- 已添加的网页将被动态添加到这里 -->
+    </div>
+
+    <!-- 模态框 -->
+    <div id="modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+        <div class="bg-gray-800 text-white rounded-lg p-8 w-full max-w-md">
+            <h2 class="text-2xl mb-4">添加网页</h2>
+            <form id="addPageForm" onsubmit="addPage(event)">
+                <div class="mb-4">
+                    <label for="siteName" class="block text-sm font-medium text-gray-300 mb-1">网站名称</label>
+                    <input type="text" id="siteName" name="siteName" class="bg-gray-700 text-white border border-gray-600 rounded py-2 px-3 w-full focus:outline-none" required>
+                </div>
+                <div class="mb-6">
+                    <label for="siteUrl" class="block text-sm font-medium text-gray-300 mb-1">网站地址</label>
+                    <input type="url" id="siteUrl" name="siteUrl" class="bg-gray-700 text-white border border-gray-600 rounded py-2 px-3 w-full focus:outline-none" required>
+                </div>
+                <div class="flex justify-end">
+                    <button type="button" class="bg-gray-600 text-white py-2 px-4 rounded mr-2 focus:outline-none" onclick="hideModal()">取消</button>
+                    <button type="submit" class="bg-black text-white py-2 px-4 rounded focus:outline-none">确定</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function search() {
+            const query = document.getElementById('query').value;
+            const engine = document.getElementById('engine').value;
+            let url = '';
+            switch (engine) {
+                case 'baidu':
+                    url = 'https://www.baidu.com/s?wd=' + encodeURIComponent(query);
+                    break;
+                case 'bing':
+                    url = 'https://www.bing.com/search?q=' + encodeURIComponent(query);
+                    break;
+                case 'google':
+                    url = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+                    break;
+            }
+            saveToHistory(query);
+            window.open(url, '_blank');
+        }
+
+        function saveToHistory(query) {
+            let history = JSON.parse(localStorage.getItem('searchHistory')) || [];
+            history = history.filter(item => item !== query); // 去重
+            history.unshift(query);
+            if (history.length > 10) {
+                history.pop();
+            }
+            localStorage.setItem('searchHistory', JSON.stringify(history));
+            loadHistory();
+        }
+
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('searchHistory')) || [];
+            const historyList = document.getElementById('history');
+            historyList.innerHTML = '';
+            history.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center py-1 px-2 hover:bg-gray-700 rounded cursor-pointer';
+                li.innerHTML = `
+                    <span onclick="setSearchQuery('${item}')">${item}</span>
+                    <button class="icon-button" onclick="deleteHistory(${index})">
+                        <i class="fas fa-trash-alt text-red-500 hover:text-red-700"></i>
+                    </button>
+                `;
+                historyList.appendChild(li);
+            });
+        }
+
+        function setSearchQuery(query) {
+            document.getElementById('query').value = query;
+            document.getElementById('query').focus();
+            hideHistory();
+        }
+
+        function deleteHistory(index) {
+            let history = JSON.parse(localStorage.getItem('searchHistory')) || [];
+            history.splice(index, 1);
+            localStorage.setItem('searchHistory', JSON.stringify(history));
+            loadHistory();
+        }
+
+        function showHistory() {
+            const historyList = document.getElementById('history');
+            historyList.classList.remove('hidden');
+        }
+
+        function hideHistory() {
+            const historyList = document.getElementById('history');
+            historyList.classList.add('hidden');
+        }
+
+        function hideHistoryWithDelay() {
+            setTimeout(hideHistory, 200); // 延迟隐藏历史记录以允许点击
+        }
+
+        function showModal() {
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        function hideModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        function addPage(event) {
+            event.preventDefault();
+            const siteName = document.getElementById('siteName').value;
+            const siteUrl = document.getElementById('siteUrl').value;
+            const newPage = {
+                name: siteName,
+                url: siteUrl
+            };
+
+            let pages = JSON.parse(localStorage.getItem('addedPages')) || [];
+            pages.push(newPage);
+            localStorage.setItem('addedPages', JSON.stringify(pages));
+
+            loadPages();
+            hideModal();
+        }
+
+        function loadPages() {
+            const pagesContainer = document.getElementById('addedPages');
+            pagesContainer.innerHTML = "";
+
+            const pages = JSON.parse(localStorage.getItem('addedPages')) || [];
+
+            pages.forEach((page, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'flex flex-col items-center mb-8 relative';
+                
+                const button = document.createElement('button');
+                button.className = 'circle-button icon-button';
+                button.innerHTML = `
+                    <img src="https://www.google.com/s2/favicons?sz=64&domain=${page.url}" alt="${page.name}" class="w-10 h-10 rounded-full">
+                    <div class="tooltip">${page.url}</div>
+                `;
+                button.onclick = () => window.open(page.url, '_blank');
+                
+                const pageName = document.createElement('div');
+                pageName.className = 'text-white mt-2 text-center';
+                pageName.textContent = page.name;
+
+                wrapper.appendChild(button);
+                wrapper.appendChild(pageName);
+                pagesContainer.appendChild(wrapper);
+            });
+
+            // 添加按钮
+            const addButtonWrapper = document.createElement('div');
+            addButtonWrapper.className = 'flex flex-col items-center mb-8 relative';
+
+            const button = document.createElement('button');
+            button.className = 'circle-button icon-button flex flex-col items-center justify-center bg-gray-800 text-white';
+            button.onclick = showModal;
+            button.innerHTML = `
+                <i class="fas fa-plus-circle text-3xl"></i>
+            `;
+
+            const addButtonText = document.createElement('div');
+            addButtonText.className = 'text-white mt-2 text-center';
+            addButtonText.textContent = '添加';
+
+            addButtonWrapper.appendChild(button);
+            addButtonWrapper.appendChild(addButtonText);
+            pagesContainer.appendChild(addButtonWrapper);
+        }
+
+
+        function deletePage(index) {
+            let pages = JSON.parse(localStorage.getItem('addedPages')) || [];
+            pages.splice(index, 1);
+            localStorage.setItem('addedPages', JSON.stringify(pages));
+            loadPages();
+        }
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            loadHistory();
+            loadPages();
+        });
+    </script>
+</body>
+
+</html>

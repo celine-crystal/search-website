@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sooogo</title>
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+    <link rel="icon" sizes="32x32" href="assets/favicon-32x32.png" type="image/png">
+    <link rel="icon" sizes="16x16" href="assets/favicon-16x16.png" type="image/png">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .tooltip {
+            display: none;
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #2d2d2d;
+            color: #ffffff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .circle-button:hover .tooltip {
+            display: block;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center min-h-screen bg-gray-900 text-white">
+    <h1 class="text-6xl mb-8 mt-8">Sooogo</h1>
+    <div class="search-container mb-8 w-full flex justify-center">
+        <div class="search-bar w-full max-w-xl bg-gray-800 rounded-full flex items-center px-4 py-2 border-2 border-transparent focus-within:border-gray-600 relative">
+            <input class="search-input flex-grow bg-transparent border-none text-white px-2 py-1 focus:outline-none" type="text" id="query" placeholder="输入搜索关键词" required  onfocus="showHistory();" onblur="hideHistoryWithDelay();">
+            <div class="relative">
+                <button class="search-select border-none text-white px-4 py-2 rounded focus:outline-none" onclick="toggleDropdown()">Google</button>
+                <div id="dropdownMenu" class="dropdown-menu hidden absolute right-0 mt-2 w-48 bg-gray-700 rounded shadow-lg z-50">
+                    <button class="dropdown-item block w-full text-left px-4 py-2 text-white hover:bg-gray-600" onclick="selectEngine('google')">Google</button>
+                    <button class="dropdown-item block w-full text-left px-4 py-2 text-white hover:bg-gray-600" onclick="selectEngine('bing')">Bing</button>
+                    <button class="dropdown-item block w-full text-left px-4 py-2 text-white hover:bg-gray-600" onclick="selectEngine('baidu')">Baidu</button>
+                </div>
+            </div>
+            <div id="history" class="history-container hidden absolute top-full left-0 right-0 bg-gray-800 rounded-lg shadow-lg overflow-y-auto max-h-48 z-10">
+                <!-- 历史记录将被动态添加到这里 -->
+            </div>
+        </div>
+    </div>
+
+    <div id="addedPages" class="w-full max-w-lg mt-8 grid grid-cols-6 gap-6 text-center">
+        <!-- 已添加的网页将被动态添加到这里 -->
+    </div>
+
+    <div id="contextMenu" class="context-menu hidden flex flex-col absolute bg-gray-800 border border-gray-700 rounded z-50">
+        <div class="context-menu-item px-4 py-2 cursor-pointer hover:bg-gray-700" onclick="editPage()">修改</div>
+        <div class="context-menu-item px-4 py-2 cursor-pointer hover:bg-gray-700" onclick="confirmDeletePage()">删除</div>
+    </div>
+
+    <div id="modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+        <div class="bg-gray-800 text-white rounded-lg p-8 w-full max-w-md">
+            <h2 class="text-2xl mb-4" id="modalTitle">添加网页</h2>
+            <form id="addPageForm" onsubmit="addPage(event)">
+                <div class="mb-4">
+                    <label for="siteName" class="block text-sm font-medium text-gray-300 mb-1">网站名称</label>
+                    <input type="text" id="siteName" name="siteName" class="bg-gray-700 text-white border border-gray-600 rounded py-2 px-3 w-full focus:outline-none" required>
+                </div>
+                <div class="mb-6">
+                    <label for="siteUrl" class="block text-sm font-medium text-gray-300 mb-1">网站地址</label>
+                    <input type="url" id="siteUrl" name="siteUrl" class="bg-gray-700 text-white border border-gray-600 rounded py-2 px-3 w-full focus:outline-none" required>
+                </div>
+                <div class="flex justify-end">
+                    <button type="button" class="bg-gray-600 text-white py-2 px-4 rounded mr-2 focus:outline-none" onclick="hideModal()">取消</button>
+                    <button type="submit" class="bg-black text-white py-2 px-4 rounded focus:outline-none">确定</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 在这里插入现有代码的末尾 -->
+    <footer class="w-full bg-gray-900 py-4 text-center text-white mt-auto">
+        <p>&copy; 2024 Sooogo. All rights reserved.</p>
+        <div class="flex justify-center space-x-4 mt-2">
+            <a href="https://sspoffer.site/" target="_blank" class="text-gray-400 hover:text-white hover:bg-gray-700 p-2 rounded-full flex items-center justify-center">
+                <img src="assets/sspoffer-dark.svg" alt="预见Offer" class="w-4 h-4 rounded-full border border-white">
+            </a>
+            <a href="https://www.douyin.com/user/MS4wLjABAAAARqwt2D8wIC2eZmUpnQT0AjIqbaW3wMjoc_e85bKOG64" target="_blank" class="text-gray-400 hover:text-white hover:bg-gray-700 p-2 rounded-full">
+                <i class="fab fa-tiktok"></i>
+            </a>
+            <a href="https://www.xiaohongshu.com/user/profile/5f698c710000000001009514" target="_blank" class="text-gray-400 hover:text-white hover:bg-gray-700 p-2 rounded-full">
+                <i class="fa-solid fa-registered"></i>
+            </a>
+            <a href="https://space.bilibili.com/271617737" target="_blank" class="text-gray-400 hover:text-white hover:bg-gray-700 p-2 rounded-full">
+                <i class="fa-brands fa-bilibili"></i>
+            </a>
+        </div>        
+    </footer>    
+    <!-- 在这里结束 -->
+
+    <script>
+        let editIndex = -1;
+        let selectedEngine = 'google';
+
+        function search() {
+            const query = document.getElementById('query').value;
+            let url = '';
+            switch (selectedEngine) {
+                case 'baidu':
+                    url = 'https://www.baidu.com/s?wd=' + encodeURIComponent(query);
+                    break;
+                case 'bing':
+                    url = 'https://www.bing.com/search?q=' + encodeURIComponent(query);
+                    break;
+                case 'google':
+                    url = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+                    break;
+            }
+            saveToHistory(query);
+            window.open(url, '_blank');
+        }
+
+        function saveToHistory(query) {
+            let history = JSON.parse(localStorage.getItem('searchHistory')) || [];
+            history = history.filter(item => item !== query);
+            history.unshift(query);
+            if (history.length > 10) {
+                history.pop();
+            }
+            localStorage.setItem('searchHistory', JSON.stringify(history));
+            loadHistory();
+        }
+
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('searchHistory')) || [];
+            const historyList = document.getElementById('history');
+            historyList.innerHTML = '';
+            history.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'history-item flex justify-between items-center px-4 py-2 cursor-pointer hover:bg-gray-700';
+                li.setAttribute('onclick', `setSearchQuery('${item}')`);
+                li.innerHTML = `
+                    <span onclick="setSearchQuery('${item}')">${item}</span>
+                    <button class="icon-button bg-transparent border-none text-red-500 hover:text-red-700" onclick="deleteHistory(${index})">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                `;
+                historyList.appendChild(li);
+            });
+        }
+
+        function setSearchQuery(query) {
+            console.log("set query", query);
+            debugger
+            document.getElementById('query').value = query;
+            document.getElementById('history').classList.add('hidden');
+        }
+
+        function showHistory() {
+            document.getElementById('history').classList.remove('hidden');
+        }
+
+        function hideHistoryWithDelay() {
+            setTimeout(() => {
+                document.getElementById('history').classList.add('hidden');
+            }, 200);
+        }
+
+        function deleteHistory(index) {
+            let history = JSON.parse(localStorage.getItem('searchHistory')) || [];
+            history.splice(index, 1);
+            localStorage.setItem('searchHistory', JSON.stringify(history));
+            loadHistory();
+        }
+
+        function toggleDropdown() {
+            document.getElementById('dropdownMenu').classList.toggle('hidden');
+        }
+
+        function selectEngine(engine) {
+            selectedEngine = engine;
+            const button = document.querySelector('.search-select');
+            switch (engine) {
+                case 'baidu':
+                    button.textContent = 'Baidu';
+                    break;
+                case 'bing':
+                    button.textContent = 'Bing';
+                    break;
+                case 'google':
+                    button.textContent = 'Google';
+                    break;
+            }
+            toggleDropdown();
+        }
+
+        function showModal(isEdit = false, index = -1) {
+            document.getElementById('modal').classList.remove('hidden');
+            if (isEdit) {
+                document.getElementById('modalTitle').innerText = '修改网页';
+                editIndex = index;
+                const pages = JSON.parse(localStorage.getItem('addedPages')) || [];
+                document.getElementById('siteName').value = pages[index].name;
+                document.getElementById('siteUrl').value = pages[index].url;
+            } else {
+                document.getElementById('modalTitle').innerText = '添加网页';
+                document.getElementById('siteName').value = '';
+                document.getElementById('siteUrl').value = '';
+                editIndex = -1;
+            }
+        }
+
+        function hideModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        function addPage(event) {
+            event.preventDefault();
+            const name = document.getElementById('siteName').value;
+            const url = document.getElementById('siteUrl').value;
+            let pages = JSON.parse(localStorage.getItem('addedPages')) || [];
+            if (editIndex === -1) {
+                pages.push({ name, url });
+            } else {
+                pages[editIndex] = { name, url };
+            }
+            localStorage.setItem('addedPages', JSON.stringify(pages));
+            hideModal();
+            loadPages();
+        }
+
+        function loadPages() {
+            const pages = JSON.parse(localStorage.getItem('addedPages')) || [];
+            const pagesContainer = document.getElementById('addedPages');
+            pagesContainer.innerHTML = '';
+
+            pages.forEach((page, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'flex flex-col items-center mb-8 relative';
+                wrapper.oncontextmenu = (event) => showContextMenu(event, index);
+
+                const button = document.createElement('button');
+                button.className = 'circle-button icon-button flex items-center justify-center w-16 h-16 rounded-full bg-gray-800 hover:bg-gray-700';
+                button.innerHTML = `
+                    <img src="https://reverse.bugkit.cn/favicon?domain=${page.url}" alt="${page.name}" class="w-10 h-10 rounded-full">
+                    <div class="tooltip">${page.url}</div>
+                `;
+                button.onclick = () => window.open(page.url, '_blank');
+
+                const pageName = document.createElement('div');
+                pageName.className = 'text-white mt-2 text-center';
+                pageName.textContent = page.name;
+
+                wrapper.appendChild(button);
+                wrapper.appendChild(pageName);
+                pagesContainer.appendChild(wrapper);
+            });
+
+            const addButtonWrapper = document.createElement('div');
+            addButtonWrapper.className = 'flex flex-col items-center mb-8 relative';
+
+            const button = document.createElement('button');
+            button.className = 'circle-button icon-button flex items-center justify-center w-16 h-16 rounded-full bg-gray-800 text-white hover:bg-gray-700';
+            button.onclick = () => showModal(false);
+            button.innerHTML = `<i class="fas fa-plus-circle text-3xl"></i>`;
+
+            const addButtonText = document.createElement('div');
+            addButtonText.className = 'text-white mt-2 text-center';
+            addButtonText.textContent = '添加';
+
+            addButtonWrapper.appendChild(button);
+            addButtonWrapper.appendChild(addButtonText);
+            pagesContainer.appendChild(addButtonWrapper);
+        }
+
+        function deletePage(index) {
+            let pages = JSON.parse(localStorage.getItem('addedPages')) || [];
+            pages.splice(index, 1);
+            localStorage.setItem('addedPages', JSON.stringify(pages));
+            loadPages();
+        }
+
+        function showContextMenu(event, index) {
+            event.preventDefault();
+            const contextMenu = document.getElementById('contextMenu');
+            contextMenu.style.top = `${event.clientY}px`;
+            contextMenu.style.left = `${event.clientX}px`;
+            contextMenu.style.display = 'block';
+            contextMenu.classList.remove('hidden');
+            contextMenu.setAttribute('data-index', index);
+        }
+
+        function hideContextMenu() {
+            const contextMenu = document.getElementById('contextMenu');
+            contextMenu.classList.add('hidden');
+            contextMenu.style.display = 'none';
+        }
+
+        function editPage() {
+            const index = document.getElementById('contextMenu').getAttribute('data-index');
+            showModal(true, parseInt(index));
+            hideContextMenu();
+        }
+
+        function confirmDeletePage() {
+            const index = document.getElementById('contextMenu').getAttribute('data-index');
+            deletePage(parseInt(index));
+            hideContextMenu();
+        }
+
+        document.addEventListener('click', hideContextMenu);
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            loadHistory();
+            loadPages();
+        });
+
+        document.getElementById('query').addEventListener('compositionstart', function(event) {
+            this.isComposing = true;
+        });
+
+        document.getElementById('query').addEventListener('compositionend', function(event) {
+            this.isComposing = false;
+        });
+
+        document.getElementById('query').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && !this.isComposing) {
+                search();
+            }
+        });
+
+
+    </script>
+</body>
+
+</html>
