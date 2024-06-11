@@ -233,15 +233,31 @@
             event.preventDefault();
             const name = document.getElementById('siteName').value;
             const url = document.getElementById('siteUrl').value;
-            let pages = JSON.parse(localStorage.getItem('addedPages')) || [];
-            if (editIndex === -1) {
-                pages.push({ name, url });
-            } else {
-                pages[editIndex] = { name, url };
-            }
-            localStorage.setItem('addedPages', JSON.stringify(pages));
-            hideModal();
-            loadPages();
+
+            // 调用后端API下载favicon并获取路径
+            fetch('/api/download-favicon', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ url }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const faviconPath = data.faviconPath;  // 从后端API获取的favicon路径
+                let pages = JSON.parse(localStorage.getItem('addedPages')) || [];
+                if (editIndex === -1) {
+                    pages.push({ name, url, faviconPath });
+                } else {
+                    pages[editIndex] = { name, url, faviconPath };
+                }
+                localStorage.setItem('addedPages', JSON.stringify(pages));
+                hideModal();
+                loadPages();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
         }
 
         function loadPages() {
@@ -257,7 +273,7 @@
                 const button = document.createElement('button');
                 button.className = 'circle-button icon-button flex items-center justify-center w-16 h-16 rounded-full bg-gray-800 hover:bg-gray-700';
                 button.innerHTML = `
-                    <img src="https://reverse.bugkit.cn/favicon?domain=${page.url}" alt="${page.name}" class="w-10 h-10 rounded-full">
+                    <img src="${page.faviconPath}" alt="${page.name}" class="w-10 h-10 rounded-full">
                     <div class="tooltip">${page.url}</div>
                 `;
                 button.onclick = () => window.open(page.url, '_blank');
