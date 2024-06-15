@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  search-website:
+    image: search-website:1.0
+    container_name: search-website
+    restart: always
+    networks:
+      root_common_services:
+        ipv4_address: 172.66.0.251
+    ports:
+      - "3002:3002"
+
+networks:
+  root_common_services:
+    external: true
