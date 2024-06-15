@@ -1,12 +1,14 @@
 <p align="center">
-    <img src="https://github.com/celine-crystal/search-website/blob/main/assets/favicon-32x32.png" alt="描述" width="32"/>
+    <img src="https://github.com/celine-crystal/search-website/blob/main/assets/favicon-32x32.png" alt="favicon" width="32"/>
 <p>
 <h2 align="center">
     Sooogo
 <h2>
-<p align="center">
-    [English](https://github.com/celine-crystal/search-website/README.MD) / 中文
-<p>
+
+
+# 语言
+中文 / [English](https://github.com/celine-crystal/search-website/README.MD) 
+
 # 功能
 - 聚合主流搜索引擎（谷歌、百度、必应），支持一键切换搜索引擎
 - 支持记录最近10条搜索记录
