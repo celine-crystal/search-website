@@ -5,7 +5,6 @@
     Sooogo
 <h2>
 
-
 # Languages
 English / [中文](https://github.com/celine-crystal/search-website/blob/main/README-CN.MD)
 
