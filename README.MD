@@ -1,10 +1,11 @@
 <p align="center">
-    <img src="https://github.com/celine-crystal/search-website/blob/main/assets/favicon-32x32.png" alt="描述" width="300"/>
-    Sooogo
+    <img src="https://github.com/celine-crystal/search-website/blob/main/assets/favicon-32x32.png" alt="描述" width="32"/>
 <p>
-
+<h2 align="center">
+    Sooogo
+<h2>
 <p align="center">
-    English/[中文](https://github.com/celine-crystal/search-website/README-CN.MD)
+    English / [中文](https://github.com/celine-crystal/search-website/README-CN.MD)
 <p>
 # Features
 - Aggregates major search engines (Google, Baidu, Bing) with support for one-click switching between search engines
